@@ -1,6 +1,11 @@
 #include "square.hpp"
 #include <cassert>
 
+// namespace
+// {
+//     bool is_registered = shape_factory.register_creator(Square::id, &std::make_unique<Square>);
+// }
+
 Drawing::Square::Square(int x, int y, int size)
     : rect_{x, y, size, size}
 {

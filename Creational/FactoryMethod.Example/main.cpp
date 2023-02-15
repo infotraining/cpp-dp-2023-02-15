@@ -135,17 +135,23 @@ public:
     // }
 };
 
+ShapeFactory shape_factory;
+
 int main()
 {
     cout << "Start..." << endl;
 
+    // bootstrapping
     ShapeFactory shape_factory;
     shape_factory.register_creator(Rectangle::id, &std::make_unique<Rectangle>);
     shape_factory.register_creator(Square::id, &std::make_unique<Square>);
+    // shape_factory.register_creator(Circle::id, &std::make_unique<Circle>);
+
 
     ShapeRWFactory shape_rw_factory;
     shape_rw_factory.register_creator(make_type_index<Rectangle>(), &std::make_unique<RectangleReaderWriter>);
     shape_rw_factory.register_creator(make_type_index<Square>(), &std::make_unique<SquareReaderWriter>);
+    // shape_rw_factory.register_creator(make_type_index<Circle>(), &std::make_unique<CircleReaderWriter>);
 
     GraphicsDoc doc{shape_factory, shape_rw_factory};
 
