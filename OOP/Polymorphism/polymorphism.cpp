@@ -173,7 +173,6 @@ namespace VariantPolymorphism
             std::cout << std::endl;
         }
     };
-
 }
 
 int main()
@@ -184,17 +183,17 @@ int main()
         Guitar strat{std::make_unique<SingleCoil>()};
         strat.play("D-power-cord");
 
-        Guitar les_paul{std::make_unique<Humbucker>()};
+        Guitar les_paul{std::make_unique<Humbucker>()}; // runtime config
         les_paul.play("D-power-cord");
     }
 
     {
         using namespace StaticPolymorphism;
 
-        Guitar strat{SingleCoil{}};
+        Guitar strat{SingleCoil{}}; // CTAD
         strat.play("D-power-cord");
 
-        Guitar<Humbucker> les_paul;
+        Guitar<Humbucker> les_paul; // compile-time config
         les_paul.play("D-power-cord");
     }
 
@@ -224,4 +223,38 @@ int main()
         Guitar g{h};
         g.play("E-power-cord");
     }
+}
+
+struct PrintVisitor
+{
+    void operator()(int x) 
+    {
+        std::cout << "int: " << x << "\n";
+    }
+
+    void operator()(double x) 
+    {
+        std::cout << "double: " << x << "\n";
+    }
+
+    void operator()(const std::string& x) 
+    {
+        std::cout << "string: " << x << "\n";
+    }
+};
+
+void varaint_explain()
+{
+    using namespace std::literals;
+
+    std::variant<int, double, std::string> v1;
+
+    v1 = 42;
+    v1 = 3.14;
+    //v1 = "text"s;
+
+    std::cout << std::get<std::string>(v1) << "\n";
+
+    std::visit(PrintVisitor{}, v1);
+    std::visit([](const auto& x) { std::cout << x << "\n";}, v1);
 }
