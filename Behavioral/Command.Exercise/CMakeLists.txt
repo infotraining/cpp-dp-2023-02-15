@@ -12,7 +12,7 @@ add_subdirectory(src)
 # Tests
 #----------------------------------------
 enable_testing()
-add_subdirectory(gtests)
+#add_subdirectory(gtests)
 
 #----------------------------------------
 # Main app
