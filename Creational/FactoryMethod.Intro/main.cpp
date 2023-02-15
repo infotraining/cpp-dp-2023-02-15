@@ -172,3 +172,98 @@ int main()
     app.reset_music_service_creator(music_service_factory.at("Tidal"));
     app.play("Lux AEterna");
 }
+
+struct Shape
+{
+    virtual void draw() = 0;
+    virtual void move_to(int x, int y) = 0;
+    virtual ~Shape() = default;
+};
+
+struct Rectangle : public Shape
+{
+    int x, y, w, h;
+
+    Rectangle(int x, int y, int w, int h) : x{x}, y{y}, w{w}, h{h}
+    {}
+
+    void draw() override
+    {
+        std::cout << "Rect: " << x << ", " << y << ", " << w << ", " << h << "\n";
+    }
+
+    void move_to(int x, int y) override
+    {
+        this->x = x;
+        this->y = y;
+    }
+};
+
+struct Circle : public Shape
+{
+    int x, y, r;
+
+    Circle(int x, int y, int r) : x{x}, y{y}, r{r}
+    {}
+
+    virtual void draw() override
+    {
+        std::cout << "Circle: " << x << ", " << y << ", " << r << "\n";
+    }
+
+    virtual void move_to(int x, int y) override
+    {
+        this->x = x;
+        this->y = y;
+    }
+};
+
+void foo()
+{
+    std::cout << "foo()\n";
+}
+
+struct Foo
+{
+    void operator()() 
+    {
+        std::cout << "Foo::operator()()\n";
+    }
+};
+
+class Function
+{
+    virtual void call() = 0;
+    virtual ~Function() = default;
+};
+
+void duck_typing()
+{
+    std::unique_ptr<Shape> shp = std::make_unique<Rectangle>(100, 200, 600, 500);
+    shp->draw();
+    shp->move_to(100, 200);
+
+    shp = std::make_unique<Circle>(200, 600, 100);
+    shp->draw();
+    shp->move_to(100, 200);
+
+    // duck typing
+    // Shape shp = Rectangle(100, 200, 600, 500);
+    // shp.draw();
+    // shp.move_to(100, 300);
+
+    // shp = Circle(100, 300, 800);
+    // shp.draw();
+    // shp.move_to(100, 400);
+
+    std::function<void()> f;
+
+    f = foo;
+    f();
+
+    f = Foo{};
+    f();
+
+    f = []() { std::cout << "Lambda\n"; };
+    f();
+}

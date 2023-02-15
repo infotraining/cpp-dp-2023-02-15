@@ -1,44 +1,88 @@
-#include <cassert>
-#include <fstream>
-#include <iostream>
-#include <memory>
-#include <vector>
-
 #include "rectangle.hpp"
 #include "shape.hpp"
 #include "shape_readers_writers/rectangle_reader_writer.hpp"
 #include "shape_readers_writers/square_reader_writer.hpp"
 #include "square.hpp"
 
+#include <cassert>
+#include <fstream>
+#include <functional>
+#include <iostream>
+#include <memory>
+#include <typeindex>
+#include <unordered_map>
+#include <vector>
+
 using namespace std;
 using namespace Drawing;
 using namespace Drawing::IO;
 
-unique_ptr<Shape> create_shape(const string& id)
+template <typename TProduct, typename TId = std::string, typename TCreator = std::function<std::unique_ptr<TProduct>()>>
+class GenericFactory
 {
-    if (id == Rectangle::id)
-        return make_unique<Rectangle>();
-    else if (id == Square::id)
-        return make_unique<Square>();
+    std::unordered_map<TId, TCreator> creators_;
 
-    throw runtime_error("Unknown shape id");
+public:
+    bool register_creator(TId id, TCreator creator)
+    {
+        return creators_.emplace(std::move(id), std::move(creator)).second;
+    }
+
+    std::unique_ptr<TProduct> create(const TId& id)
+    {
+        auto& creator = creators_.at(id);
+        return creator();
+    }
+};
+
+template <typename T>
+std::type_index make_type_index(const T& obj)
+{
+    return std::type_index{typeid(obj)};
 }
 
-unique_ptr<ShapeReaderWriter> create_shape_rw(Shape& shape)
+template <typename T>
+std::type_index make_type_index()
 {
-    if (typeid(shape) == typeid(Rectangle))
-        return make_unique<RectangleReaderWriter>();
-    else if (typeid(shape) == typeid(Square))
-        return make_unique<SquareReaderWriter>();
-
-    throw runtime_error("Unknown shape id");
+    return std::type_index{typeid(T)};
 }
+
+using ShapeFactory = GenericFactory<Shape>;
+using ShapeRWFactory = GenericFactory<ShapeReaderWriter, std::type_index>;
+
+// unique_ptr<Shape> create_shape(const string& id)
+// {
+//     if (id == Rectangle::id)
+//         return make_unique<Rectangle>();
+//     else if (id == Square::id)
+//         return make_unique<Square>();
+
+//     throw runtime_error("Unknown shape id");
+// }
+
+// unique_ptr<ShapeReaderWriter> create_shape_rw(Shape& shape)
+// {
+//     if (typeid(shape) == typeid(Rectangle))
+//         return make_unique<RectangleReaderWriter>();
+//     else if (typeid(shape) == typeid(Square))
+//         return make_unique<SquareReaderWriter>();
+
+//     throw runtime_error("Unknown shape id");
+// }
 
 class GraphicsDoc
 {
     vector<unique_ptr<Shape>> shapes_;
+    ShapeFactory& shape_factory_;
+    ShapeRWFactory& shape_rw_factory_;
 
 public:
+    GraphicsDoc(ShapeFactory& shape_factory, ShapeRWFactory& shape_rw_factory)
+        : shape_factory_{shape_factory}
+        , shape_rw_factory_{shape_rw_factory}
+    {
+    }
+
     void add(unique_ptr<Shape> shp)
     {
         shapes_.push_back(std::move(shp));
@@ -70,8 +114,8 @@ public:
 
             cout << "Loading " << shape_id << "..." << endl;
 
-            auto shape = create_shape(shape_id);
-            auto shape_rw = create_shape_rw(*shape);
+            auto shape = shape_factory_.create(shape_id);
+            auto shape_rw = shape_rw_factory_.create(make_type_index(*shape));
 
             shape_rw->read(*shape, file_in);
 
@@ -79,23 +123,31 @@ public:
         }
     }
 
-    void save(const string& filename)
-    {
-        ofstream file_out{filename};
+    // void save(const string& filename)
+    // {
+    //     ofstream file_out{filename};
 
-        for (const auto& shp : shapes_)
-        {
-            auto shape_rw = create_shape_rw(*shp);
-            shape_rw->write(*shp, file_out);
-        }
-    }
+    //     for (const auto& shp : shapes_)
+    //     {
+    //         auto shape_rw = create_shape_rw(*shp);
+    //         shape_rw->write(*shp, file_out);
+    //     }
+    // }
 };
 
 int main()
 {
     cout << "Start..." << endl;
 
-    GraphicsDoc doc;
+    ShapeFactory shape_factory;
+    shape_factory.register_creator(Rectangle::id, &std::make_unique<Rectangle>);
+    shape_factory.register_creator(Square::id, &std::make_unique<Square>);
+
+    ShapeRWFactory shape_rw_factory;
+    shape_rw_factory.register_creator(make_type_index<Rectangle>(), &std::make_unique<RectangleReaderWriter>);
+    shape_rw_factory.register_creator(make_type_index<Square>(), &std::make_unique<SquareReaderWriter>);
+
+    GraphicsDoc doc{shape_factory, shape_rw_factory};
 
     doc.load("drawing_fm_example.txt");
 
@@ -103,5 +155,5 @@ int main()
 
     doc.render();
 
-    doc.save("new_drawing.txt");
+    // doc.save("new_drawing.txt");
 }
