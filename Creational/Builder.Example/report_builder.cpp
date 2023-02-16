@@ -45,7 +45,7 @@ ReportBuilder& HtmlReportBuilder::add_footer(const std::string& footer)
 
 HtmlDocument HtmlReportBuilder::get_report()
 {
-    return std::move(doc_);
+    return doc_;
 }
 
 ReportBuilder& CsvReportBuilder::add_header(const std::string& header_text)

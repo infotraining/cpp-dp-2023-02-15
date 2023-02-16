@@ -10,7 +10,7 @@ constexpr auto file_name = "data_builder.txt";
 HtmlDocument build_html_document()
 {
     HtmlReportBuilder html_builder;
-
+    
     DataParser parser(html_builder);
     parser.Parse(file_name);
 
@@ -33,11 +33,24 @@ int main()
 
     cout << doc_html << endl;
 
-    ///////////////////////////////////////////////////////////
     cout << "///////////////////////////////////////////////////////////\n";
 
     CsvDocument csv_doc = build_csv_document();
 
     for (const auto& line : csv_doc)
         cout << line << endl;
+
+    cout << "///////////////////////////////////////////////////////////\n";
+
+    HtmlReportBuilder html_bld;
+
+    html_bld
+        .add_header("Title")
+        .begin_data()
+            .add_row({"1", "2", "3"})
+            .add_row({"4", "5", "6"})
+        .end_data()
+        .add_footer("THE END");
+
+    std::cout << html_bld.get_report() << "\n";
 }
