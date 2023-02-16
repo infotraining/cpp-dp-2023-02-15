@@ -5,7 +5,7 @@
 
 namespace Drawing
 {
-    class Circle : public ShapeBase
+    class Circle : public ShapeBase<Circle>
     {
         int radius_;
 
