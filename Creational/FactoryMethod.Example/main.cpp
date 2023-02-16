@@ -12,6 +12,7 @@
 #include <typeindex>
 #include <unordered_map>
 #include <vector>
+#include <list>
 
 using namespace std;
 using namespace Drawing;
@@ -162,4 +163,16 @@ int main()
     doc.render();
 
     // doc.save("new_drawing.txt");
+}
+
+void surprising_factory_method()
+{
+    std::vector vec = {1, 2, 3};
+
+    for(auto it = vec.begin(); it != vec.end(); ++it)
+    {
+        const auto& item = *it;
+        std::cout << item << " ";
+    }
+    std::cout << "\n";
 }
