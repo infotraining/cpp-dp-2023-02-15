@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <iterator>
 #include <list>
@@ -23,22 +24,79 @@ struct StatResult
 using Data = std::vector<double>;
 using Results = std::vector<StatResult>;
 
-enum StatisticsType
+using StatCounter = std::function<Results(const Data&)>;
+
+namespace Alternative
 {
-    avg,
-    min_max,
-    sum
+    using StatCounter = std::function<void(const Data&, Results& out_stats)>;
+}
+
+Results GetAvg(const Data& data)
+{
+    double sum = std::accumulate(data.begin(), data.end(), 0.0);
+    double avg = sum / data.size();
+    return {{"Avg", avg}};
+}
+
+struct GetSum
+{
+    Results operator()(const Data& data)
+    {
+        double sum = std::accumulate(data.begin(), data.end(), 0.0);
+        return {{"Sum", sum}};
+    }
+};
+
+struct GetMin
+{
+    Results operator()(const Data& data)
+    {
+        return {{"Min", *(std::min_element(data.begin(), data.end()))}};
+    }
+};
+
+struct GetMax
+{
+    Results operator()(const Data& data)
+    {
+        return {{"Max", *(std::max_element(data.begin(), data.end()))}};
+    }
+};
+
+// composite
+struct StatGroup
+{
+    std::vector<StatCounter> stats_;
+
+    Results operator()(const Data& data)
+    {
+        Results results;
+
+        for(const auto& stat : stats_)
+        {
+            auto&& stats = stat(data);
+
+            results.insert(results.end(), stats.begin(), stats.end());
+        }
+
+        return results;
+    }
+
+    void add_stat(StatCounter stat)
+    {
+        stats_.push_back(stat);
+    }
 };
 
 class DataAnalyzer
 {
-    StatisticsType stat_type_;
     Data data_;
     Results results_;
+    StatCounter stat_counter_;
 
 public:
-    DataAnalyzer(StatisticsType stat_type)
-        : stat_type_{stat_type}
+    DataAnalyzer(StatCounter stat_type)
+        : stat_counter_{stat_type}
     {
     }
 
@@ -60,35 +118,16 @@ public:
         std::cout << "File " << file_name << " has been loaded...\n";
     }
 
-    void set_statistics(StatisticsType stat_type)
+    void set_statistics(StatCounter stat_type)
     {
-        stat_type_ = stat_type;
+        stat_counter_ = stat_type;
     }
 
     void calculate()
     {
-        if (stat_type_ == avg)
-        {
-            double sum = std::accumulate(data_.begin(), data_.end(), 0.0);
-            double avg = sum / data_.size();
+        auto&& stats = stat_counter_(data_);
 
-            StatResult result("Avg", avg);
-            results_.push_back(result);
-        }
-        else if (stat_type_ == min_max)
-        {
-            double min = *(std::min_element(data_.begin(), data_.end()));
-            double max = *(std::max_element(data_.begin(), data_.end()));
-
-            results_.push_back(StatResult("Min", min));
-            results_.push_back(StatResult("Max", max));
-        }
-        else if (stat_type_ == sum)
-        {
-            double sum = std::accumulate(data_.begin(), data_.end(), 0.0);
-
-            results_.push_back(StatResult("Sum", sum));
-        }
+        results_.insert(results_.end(), stats.begin(), stats.end());
     }
 
     const Results& results() const
@@ -105,15 +144,12 @@ void show_results(const Results& results)
 
 int main()
 {
-    DataAnalyzer da{avg};
+    StatGroup min_max{{GetMin{}, GetMax{}}};
+    StatGroup std_stats{{GetAvg, min_max }};
+    std_stats.add_stat(GetSum{});
+
+    DataAnalyzer da{std_stats};
     da.load_data("stats_data.dat");
-
-    da.calculate();
-
-    da.set_statistics(min_max);
-    da.calculate();
-
-    da.set_statistics(sum);
     da.calculate();
 
     show_results(da.results());
