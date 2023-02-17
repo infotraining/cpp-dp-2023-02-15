@@ -2,7 +2,7 @@
 
 #include "application.hpp"
 #include "command.hpp"
-#include <boost/di.hpp>
+#include "boost/di.hpp"
 
 using namespace std;
 namespace di = boost::di;

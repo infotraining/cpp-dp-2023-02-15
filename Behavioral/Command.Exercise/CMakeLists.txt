@@ -22,11 +22,10 @@ add_executable(${TARGET_MAIN} main.cpp)
 target_compile_features(${TARGET_MAIN} PUBLIC cxx_std_17)
 target_link_libraries(${TARGET_MAIN} PUBLIC ${PROJECT_LIB})
 
-
 ####################
 # Boost DI
-find_path(BEXT_DI_INCLUDE_DIRS "boost/di.hpp")
-target_include_directories(${TARGET_MAIN} PRIVATE ${BEXT_DI_INCLUDE_DIRS})
+# find_path(BEXT_DI_INCLUDE_DIRS "boost/di.hpp")
+# target_include_directories(${TARGET_MAIN} PRIVATE ${BEXT_DI_INCLUDE_DIRS})
 
 # #----------------------------------------
 # # set compiler options
