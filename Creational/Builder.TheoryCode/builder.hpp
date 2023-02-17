@@ -36,6 +36,31 @@ public:
     virtual ~Director() = default;
 };
 
+namespace NoNeedForChangeForConstruct
+{
+    class CarBuilder
+    {
+    public:
+        void construct() // template  method
+        {
+            build_engine();
+            reset();
+            build_gearbox();
+            build_aircondition();
+            build_wheels();
+        }
+
+        virtual ~CarBuilder() = default;
+
+    protected: // interface - allows adding a new configuration
+        virtual void reset() = 0;
+        virtual void build_engine() = 0;
+        virtual void build_gearbox() = 0;
+        virtual void build_aircondition() = 0;
+        virtual void build_wheels() = 0;
+    };
+}
+
 // "Product"
 class Car
 {
