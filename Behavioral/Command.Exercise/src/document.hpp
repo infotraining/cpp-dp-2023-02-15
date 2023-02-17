@@ -2,6 +2,7 @@
 #define DOCUMENT_HPP
 
 #include "serializers.hpp"
+#include <array>
 
 #include <algorithm>
 #include <cctype>
@@ -91,3 +92,5 @@ public:
 };
 
 #endif
+
+

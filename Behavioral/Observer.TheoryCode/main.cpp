@@ -1,4 +1,5 @@
 #include "observer.hpp"
+#include <memory>
 
 using namespace std;
 
@@ -22,7 +23,7 @@ public:
             current_temperature_ = new_temperature;
 
             // sending notification to all observers
-            notify(*this, current_temperature_);
+            notify(current_temperature_);
         }
     }
 };
@@ -45,13 +46,13 @@ public:
     void on()
     {
         is_on_ = true;
-        notify(*this, "Fan is on...");
+        notify("Fan is on...");
     }
 
     void off()
     {
         is_on_ = false;
-        notify(*this, "Fan is off...");
+        notify("Fan is off...");
     }
 };
 
@@ -72,33 +73,33 @@ public:
 
 int main()
 {
-    Fan fan;
-    TemperatureMonitor temp_monitor(21.0);
-    ConsoleLogger console_logger;
+    auto fan = std::make_shared<Fan>();
+    auto temp_monitor = std::make_shared<TemperatureMonitor>(21.0);
+    auto console_logger = std::make_shared<ConsoleLogger>();
 
-    temp_monitor.subscribe(&fan);
-    temp_monitor.subscribe(&console_logger);
-    fan.subscribe(&console_logger);
+    temp_monitor->subscribe(fan);
+    temp_monitor->subscribe(console_logger);
+    fan->subscribe(console_logger);
 
-    temp_monitor.set_temperature(22.0);
-    temp_monitor.set_temperature(23.0);
-    temp_monitor.set_temperature(24.0);
-    temp_monitor.set_temperature(25.0);
-    temp_monitor.set_temperature(26.0);
-    temp_monitor.set_temperature(25.0);
-    temp_monitor.set_temperature(24.0);
-    temp_monitor.set_temperature(23.0);
-    temp_monitor.set_temperature(21.0);
+    temp_monitor->set_temperature(22.0);
+    temp_monitor->set_temperature(23.0);
+    temp_monitor->set_temperature(24.0);
+    temp_monitor->set_temperature(25.0);
 
-    temp_monitor.unsubscribe(&fan);
+    fan.reset();
 
-    temp_monitor.set_temperature(22.0);
-    temp_monitor.set_temperature(23.0);
-    temp_monitor.set_temperature(24.0);
-    temp_monitor.set_temperature(25.0);
-    temp_monitor.set_temperature(26.0);
-    temp_monitor.set_temperature(25.0);
-    temp_monitor.set_temperature(24.0);
-    temp_monitor.set_temperature(23.0);
-    temp_monitor.set_temperature(21.0);
+    temp_monitor->set_temperature(26.0);
+    temp_monitor->set_temperature(25.0);
+    temp_monitor->set_temperature(24.0);
+    temp_monitor->set_temperature(23.0);
+    temp_monitor->set_temperature(21.0);
+    temp_monitor->set_temperature(22.0);
+    temp_monitor->set_temperature(23.0);
+    temp_monitor->set_temperature(24.0);
+    temp_monitor->set_temperature(25.0);
+    temp_monitor->set_temperature(26.0);
+    temp_monitor->set_temperature(25.0);
+    temp_monitor->set_temperature(24.0);
+    temp_monitor->set_temperature(23.0);
+    temp_monitor->set_temperature(21.0);
 }

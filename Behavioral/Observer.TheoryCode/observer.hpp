@@ -4,13 +4,14 @@
 #include <iostream>
 #include <set>
 #include <string>
+#include <memory>
 
 //////////////////////////////////////////////////////////////////////////////////////
 template <typename TSource, typename... TEventArgs>
 class Observer
 {
 public:
-    virtual void update(TSource&, TEventArgs... args) = 0;
+    virtual void update(TSource&, TEventArgs... args) = 0; // model push-pull
     virtual ~Observer() = default;
 };
 
@@ -18,21 +19,25 @@ public:
 template <typename TSource, typename... TEventArgs>
 struct Observable
 {
-    void subscribe(Observer<TSource, TEventArgs...>* observer)
+    void subscribe(std::weak_ptr<Observer<TSource, TEventArgs...>> observer)
     {        
         observers_.insert(observer);
     }
-    void unsubscribe(Observer<TSource, TEventArgs...>* observer) { observers_.erase(observer); }
+    void unsubscribe(std::weak_ptr<Observer<TSource, TEventArgs...>> observer) { observers_.erase(observer); }
 
 protected:
-    void notify(TSource& source, TEventArgs... args)
+    void notify(TEventArgs... args)
     {
         for (auto&& observer : observers_)
-            observer->update(static_cast<TSource&>(*this), std::move(args...));
+        {
+            if (std::shared_ptr living_observer = observer.lock())
+                living_observer->update(static_cast<TSource&>(*this), std::move(args...));
+        }
     }
 
 private:
-    std::set<Observer<TSource, TEventArgs...>*> observers_;
+    using WeakPtrObserver = std::weak_ptr<Observer<TSource, TEventArgs...>>;
+    std::set<WeakPtrObserver, std::owner_less<WeakPtrObserver>> observers_;
 };
 
 #endif /*OBSERVER_HPP_*/

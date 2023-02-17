@@ -12,54 +12,73 @@ protected:
     std::shared_ptr<Handler> successor_;
 
 public:
-    Handler() : successor_{nullptr} {}
+    Handler()
+        : successor_{nullptr}
+    {
+    }
+
+    virtual ~Handler() = default;
 
     void set_successor(std::shared_ptr<Handler> successor)
     {
         successor_ = successor;
     }
 
-    virtual void handle_request(int request) = 0;
+    void handle_request(int request)
+    {
+        if (is_satisfied(request))
+            process_request(request);
+        else if (successor_ != nullptr)
+            successor_->handle_request(request);
+    }
 
-    virtual ~Handler() = default;
+protected:
+    virtual bool is_satisfied(int request) const = 0;
+    virtual void process_request(int request) = 0;
 };
 
 // "ConcreteHandler1"
 class ConcreteHandler1 : public Handler
 {
-public:
-    void handle_request(int request)
+protected:
+    bool is_satisfied(int request) const override
     {
-        if ((request >= 0) && (request < 10))
-            std::cout << "ConcreteHandler1 handled request " << request << std::endl;
-        else if (successor_ != nullptr)
-            successor_->handle_request(request);
+        return (request >= 0) && (request < 10);
+    }
+
+    void process_request(int request) override
+    {
+        std::cout << "ConcreteHandler1 handled request " << request << std::endl;
     }
 };
 
 // "ConcreteHandler2"
 class ConcreteHandler2 : public Handler
 {
-public:
-    void handle_request(int request)
+protected:
+    bool is_satisfied(int request) const override
     {
-        if ((request >= 10) && (request < 20))
-            std::cout << "ConcreteHandler2 handled request " << request << std::endl;
-        else if (successor_ != nullptr)
-            successor_->handle_request(request);
+        return (request >= 10) && (request < 20);
+    }
+
+    void process_request(int request) override
+    {
+        std::cout << "ConcreteHandler2 handled request " << request << std::endl;
     }
 };
 
 // "ConcreteHandler3"
 class ConcreteHandler3 : public Handler
 {
-public:
-    void handle_request(int request)
+protected:
+    bool is_satisfied(int request) const override
     {
-        if ((request >= 20) && (request < 30))
-            std::cout << "ConcreteHandler3 handled request " << request << std::endl;
-        else if (successor_ != nullptr)
-            successor_->handle_request(request);
+        return (request >= 20) && (request < 30);
+    }
+
+    void process_request(int request) override
+    {
+        std::cout << "ConcreteHandler3 handled request " << request << std::endl;
     }
 };
 

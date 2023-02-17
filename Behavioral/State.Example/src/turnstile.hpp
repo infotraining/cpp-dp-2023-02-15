@@ -177,15 +177,6 @@ namespace After
 
 namespace cpp17
 {
-    template <typename... Ts>
-    struct overloaded : Ts...
-    {
-        using Ts::operator()...;
-    };
-
-    template <typename... Ts>
-    overloaded(Ts...) -> overloaded<Ts...>; 
-
     class Turnstile
     {
         TurnstileAPI& api_;
@@ -196,7 +187,7 @@ namespace cpp17
         using TurnstileState = std::variant<Locked, Unlocked>;
         TurnstileState state_ = Locked{};
 
-        struct PassEvent
+        struct PassEvent // visitor for std::variant
         {
             TurnstileAPI& api_;
 

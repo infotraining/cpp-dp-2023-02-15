@@ -14,7 +14,7 @@ int main()
     h2->set_successor(h3);
 
     // Generate and process request
-    array<int, 8> requests = {2, 5, 14, 22, 18, 3, 27, 20};
+    array<int, 8> requests = {2, 5, 14, 22, 188, 3, 27, 20};
 
     for (const auto& r : requests)
     {
